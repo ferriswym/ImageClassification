@@ -44,10 +44,20 @@ def load_datasets(data_dir):
         root=os.path.join(data_dir, 'train'),
         transform=train_transform
     )
-    val_dataset = ImageFolder(
-        root=os.path.join(data_dir, 'val'),
-        transform=test_transform
-    )
+    if os.path.exists(os.path.join(data_dir, 'val')):
+        val_dataset = ImageFolder(
+            root=os.path.join(data_dir, 'val'),
+            transform=test_transform
+        )
+    else:
+        # 如果没有验证集，则从训练集中划分
+        train_size = int(0.8 * len(train_dataset))
+        val_size = len(train_dataset) - train_size
+        train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+    # val_dataset = ImageFolder(
+    #     root=os.path.join(data_dir, 'val'),
+    #     transform=test_transform
+    # )
     test_dataset = ImageFolder(
         root=os.path.join(data_dir, 'test'),
         transform=test_transform
@@ -56,7 +66,13 @@ def load_datasets(data_dir):
 
 # 处理类别不平衡
 def get_class_weights(dataset):
-    class_counts = torch.bincount(torch.tensor(dataset.targets))
+    if isinstance(dataset, torch.utils.data.Subset):
+        # Access the original dataset and filter targets using the subset indices
+        targets = torch.tensor(dataset.dataset.targets)[dataset.indices]
+    else:
+        targets = torch.tensor(dataset.targets)
+    
+    class_counts = torch.bincount(targets)
     class_weights = 1. / class_counts.float()
     return class_weights
 
@@ -192,7 +208,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size)
     
     # 初始化模型
-    model = build_model(args.model_name, num_classes=len(train_dataset.classes))
+    model = build_model(args.model_name, num_classes=len(train_dataset.dataset.classes))
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     

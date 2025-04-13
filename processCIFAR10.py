@@ -77,11 +77,11 @@ def organize_cifar10(raw_dir, output_dir):
 
 if __name__ == "__main__":
     # 参数设置
-    RAW_DATA_DIR = "./data/cifar10_raw"  # 原始文件存储路径
+    RAW_DATA_DIR = "/public/torchvision_datasets"  # 原始文件存储路径
     FINAL_DATA_DIR = "./data/cifar10"    # 整理后的最终路径
     
     # 执行下载和解压
-    download_and_extract_cifar10(RAW_DATA_DIR)
+    # download_and_extract_cifar10(RAW_DATA_DIR)
     
     # 组织数据到分类文件夹
     organize_cifar10(RAW_DATA_DIR, FINAL_DATA_DIR)
